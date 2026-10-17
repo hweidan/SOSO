@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>差不多先生傳 - 時空救援</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a; /* Slate 900 */
+            --terminal-bg: #1e293b; /* Slate 800 */
+            --accent-cyan: #06b6d4;
+            --accent-gold: #f59e0b;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: #e2e8f0;
+            font-family: 'Noto Serif TC', serif;
+            background-image: 
+                linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)),
+                url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA0MCAwIEwgMCAwIDAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIwLjUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=');
+        }
+        .font-tech {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--terminal-bg); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+        
+        @keyframes pulse-heart {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .heart-beat { animation: pulse-heart 1s infinite; }
+        
+        .chat-bubble-gm {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-left: 4px solid var(--accent-cyan);
+        }
+        .chat-bubble-player {
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+            border-right: 4px solid #34d399;
+        }
+    </style>
+</head>
+<body class="h-screen w-full flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden">
+
+    <div id="game-container" class="w-full max-w-3xl h-full flex flex-col bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-2xl shadow-cyan-900/20 border border-slate-700 overflow-hidden">
+        
+        <!-- Header -->
+        <header class="bg-slate-900 border-b border-slate-700 p-4 flex justify-between items-center z-10 shadow-md">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-cyan-400 font-tech flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    TIME PATROL OS
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">Target: Mr. Cha-bu-duo (差不多先生)</p>
+            </div>
+            <div class="flex flex-col items-end">
+                <span class="text-sm text-slate-300 font-bold mb-1">對象生命值</span>
+                <div id="health-display" class="flex gap-1 text-red-500 text-xl">
+                    <!-- Hearts injected by JS -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <main id="chat-area" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+            <!-- Messages will be appended here -->
+        </main>
+
+        <!-- Input Area -->
+        <footer class="bg-slate-900 border-t border-slate-700 p-4 shrink-0">
+            <form id="input-form" class="flex gap-2 sm:gap-3" onsubmit="event.preventDefault(); submitAnswer();">
+                <input type="text" id="player-input" 
+                    class="flex-1 bg-slate-800 border border-slate-600 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all placeholder-slate-500 text-base sm:text-lg"
+                    placeholder="輸入你的答案..." autocomplete="off">
+                <button type="submit" id="submit-btn"
+                    class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-cyan-900/50 transition-transform active:scale-95 flex items-center gap-2">
+                    <span>傳送</span>
+                    <svg class="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </form>
+            
+            <!-- Restart Button (Hidden initially) -->
+            <button id="restart-btn" onclick="initGame()" class="hidden w-full bg-gold-600 hover:bg-gold-500 text-white font-bold py-3 px-6 rounded-xl mt-2 transition-all bg-amber-600 hover:bg-amber-500">
+                重新啟動任務
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        // Game State
+        let currentLevel = 0;
+        let health = 3;
+        let isGameOver = false;
+
+        // Level Data
+        const levels = [
+            {
+                title: "第一關【買糖疑雲】",
+                bgm: "慵懶滑稽的二胡聲，夾雜著雜貨店老闆不耐煩的算盤聲",
+                story: "差不多先生幫母親買白糖，卻買成紅糖。雜貨店桌上有四個罐子（甲、乙、丙、丁）。老闆提示：「甲和丙其中一個是紅糖，一個是顆粒較大的冰糖；白糖在乙的右邊；丁不是白糖也不是紅糖。」",
+                question: "請你推理出哪個罐子是白糖？（請輸入甲、乙、丙或丁）",
+                hint: "刪去法！甲和丙是紅糖或冰糖，丁也不是白糖，那只剩下哪個罐子呢？（不要管左右的障眼法了！）",
+                checkAnswer: (ans) => ans.includes("乙")
+            },
+            {
+                title: "第二關【帳房危機】",
+                bgm: "算盤劈啪作響，夾雜著錢鋪老闆暴跳如雷的吼叫聲",
+                story: "他在錢鋪當夥計，「十」與「千」寫錯，導致帳目大亂。老闆氣炸了：「這裡有兩筆帳，原本加起來應該是 1050 元，但你把其中一筆的『十』多加了一撇變成『千』，結果總帳變成 1950 元！」",
+                question: "請問他寫錯的原本是哪一個中文字（或數字）？",
+                hint: "仔細看老闆的話：他把哪個字「多加了一撇」變成千呢？",
+                checkAnswer: (ans) => ans.includes("十") || ans.includes("10")
+            },
+            {
+                title: "第三關【月台狂奔】",
+                bgm: "緊張滴答的時鐘聲，與遠方火車即將開動的汽笛聲",
+                story: "火車 8:30 開車，他平常總是 8:32 才到。現在時間是 8:20，車站距離他 1.5 公里（1500公尺）。他用平常的速度走需要 15 分鐘。路上有一個捷徑可以省去 500 公尺的距離。",
+                question: "請問他如果走捷徑，最慢必須以每分鐘多少公尺的速率前進，才能剛好在 8:30 抵達？（輸入數字即可）",
+                hint: "距離剩下：1500 - 500 = 1000公尺。時間剩下：8:30 - 8:20 = 10分鐘。速率 = 距離 ÷ 時間！",
+                checkAnswer: (ans) => ans.includes("100")
+            },
+            {
+                title: "第四關【生死交關】",
+                bgm: "寒風陣陣，急促的腳步聲與濃霧中的迷茫感",
+                story: "差不多先生病重，叫僕人去找東街的汪大夫，卻找成西街的牛醫王大夫。僕人在濃霧的十字路口迷路了。路標上的字模糊不清。<br><br>東街的線索是「水落石出，王戴水帽」。<br>西街的線索是「王者頭上不長草」。",
+                question: "為了救他一命，請告訴僕人該往哪個方向走？（輸入東街、西街、東或西）",
+                hint: "差不多先生需要的是「汪」大夫。汪字有水部，符合哪一個線索？",
+                checkAnswer: (ans) => ans.includes("東")
+            }
+        ];
+
+        // DOM Elements
+        const chatArea = document.getElementById('chat-area');
+        const playerInput = document.getElementById('player-input');
+        const healthDisplay = document.getElementById('health-display');
+        const submitBtn = document.getElementById('submit-btn');
+        const inputForm = document.getElementById('input-form');
+        const restartBtn = document.getElementById('restart-btn');
+        const gameContainer = document.getElementById('game-container');
+
+        function updateHealth() {
+            healthDisplay.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                if (i < health) {
+                    healthDisplay.innerHTML += `<span class="heart-beat">❤️</span>`;
+                } else {
+                    healthDisplay.innerHTML += `<span class="opacity-30 grayscale">🖤</span>`;
+                }
+            }
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }, 50);
+        }
+
+        function addMessage(sender, htmlContent) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex w-full animate-fade-in ${sender === 'player' ? 'justify-end' : 'justify-start'}`;
+            
+            const bubble = document.createElement('div');
+            if (sender === 'gm') {
+                bubble.className = 'chat-bubble-gm p-4 sm:p-5 rounded-2xl rounded-tl-sm max-w-[90%] sm:max-w-[80%] shadow-lg shadow-black/20 text-slate-200 leading-relaxed';
+                bubble.innerHTML = `
+                    <div class="flex items-center gap-2 mb-2 text-cyan-400 font-bold text-sm font-tech">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        GAME MASTER
+                    </div>
+                    <div>${htmlContent}</div>
+                `;
+            } else {
+                bubble.className = 'chat-bubble-player p-4 rounded-2xl rounded-tr-sm max-w-[80%] shadow-lg shadow-black/20 text-white font-medium text-lg';
+                bubble.innerHTML = htmlContent;
+            }
+            
+            wrapper.appendChild(bubble);
+            chatArea.appendChild(wrapper);
+            scrollToBottom();
+        }
+
+        function triggerShake() {
+            gameContainer.classList.remove('animate-shake');
+            void gameContainer.offsetWidth; // trigger reflow
+            gameContainer.classList.add('animate-shake');
+        }
+
+        function loadLevel() {
+            const level = levels[currentLevel];
+            let msg = `
+                <div class="mb-3 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50 text-amber-300 text-sm italic flex items-center gap-2">
+                    <span>🎵</span> BGM: ${level.bgm}
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">${level.title}</h3>
+                <p class="mb-4 text-slate-300">${level.story}</p>
+                <div class="p-3 bg-cyan-950/30 border border-cyan-800/50 rounded-lg text-cyan-100 font-bold">
+                    👉 ${level.question}
+                </div>
+            `;
+            addMessage('gm', msg);
+        }
+
+        function submitAnswer() {
+            if (isGameOver) return;
+            
+            const ans = playerInput.value.trim();
+            if (!ans) return;
+            
+            // Show player message
+            addMessage('player', ans);
+            playerInput.value = '';
+            playerInput.focus();
+
+            const level = levels[currentLevel];
+
+            // Check logic
+            if (level.checkAnswer(ans)) {
+                // Correct
+                currentLevel++;
+                if (currentLevel >= levels.length) {
+                    gameWon();
+                } else {
+                    addMessage('gm', `<div class="text-emerald-400 font-bold text-lg mb-2">🎉 答對了！</div>你成功修正了這個時空節點。我們趕緊進入下一段記憶！`);
+                    setTimeout(loadLevel, 1000);
+                }
+            } else {
+                // Wrong
+                health--;
+                updateHealth();
+                triggerShake();
+                
+                if (health <= 0) {
+                    gameOver();
+                } else {
+                    addMessage('gm', `
+                        <div class="text-rose-400 font-bold text-lg mb-2">❌ 錯誤！</div>
+                        <p class="text-slate-300 mb-2">這樣做他會完蛋的！生命值扣除 1 滴。</p>
+                        <div class="p-3 bg-rose-950/30 border border-rose-800/50 rounded-lg text-rose-200 text-sm">
+                            💡 提示：${level.hint}
+                        </div>
+                    `);
+                }
+            }
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            inputForm.classList.add('hidden');
+            restartBtn.classList.remove('hidden');
+            
+            addMessage('gm', `
+                <div class="text-red-500 font-bold text-2xl mb-2 text-center animate-pulse">💀 任務失敗 (GAME OVER)</div>
+                <p class="text-center text-slate-300">差不多先生因為一連串的「差不多」，最終一命嗚呼了。時空線崩塌，請重新嘗試！</p>
+            `);
+        }
+
+        function gameWon() {
+            isGameOver = true;
+            inputForm.classList.add('hidden');
+            restartBtn.classList.remove('hidden');
+            
+            addMessage('gm', `
+                <div class="text-amber-400 font-bold text-2xl mb-4 text-center">🏆 完美結局 (PERFECT CLEAR)</div>
+                <p class="text-slate-200">太棒了！因為你的一絲不苟，差不多先生在生死的最後關頭找到了正確的汪大夫！</p>
+                <p class="text-slate-200 mt-2">他從此大徹大悟，再也不敢說「差不多」了，成為了歷史上最精明的「精準先生」。時空線已成功修復，巡邏員，任務圓滿完成！</p>
+            `);
+        }
+
+        function initGame() {
+            currentLevel = 0;
+            health = 3;
+            isGameOver = false;
+            chatArea.innerHTML = '';
+            playerInput.value = '';
+            inputForm.classList.remove('hidden');
+            restartBtn.classList.add('hidden');
+            
+            updateHealth();
+            
+            addMessage('gm', `
+                <p class="mb-2">嗶嗶！時空巡邏員，歡迎登入系統！我是你的專屬 Game Master。</p>
+                <p class="mb-2">這次你的任務是潛入「差不多先生」的記憶裡，在他犯下致命錯誤的關鍵節點，用你的智慧幫他做出正確選擇，拯救他的性命！</p>
+                <p class="text-amber-400 text-sm mt-4">⚠️ 注意：你只有 3 滴血，答錯謎題就會扣血，歸零即 Game Over。</p>
+            `);
+            
+            setTimeout(loadLevel, 1500);
+            playerInput.focus();
+        }
+
+        // Start the game on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>
